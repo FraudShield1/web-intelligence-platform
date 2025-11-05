@@ -54,4 +54,11 @@ class Job(Base):
     @property
     def is_failed(self):
         return self.status == "failed"
+    
+    @property
+    def duration_seconds(self):
+        """Calculate duration in seconds if job is completed"""
+        if self.started_at and self.completed_at:
+            return (self.completed_at - self.started_at).total_seconds()
+        return None
 
