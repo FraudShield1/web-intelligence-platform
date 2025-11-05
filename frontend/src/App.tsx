@@ -10,6 +10,7 @@ import Analytics from './pages/Analytics';
 import './App.css';
 
 // Set default API base URL - HARDCODED for Vercel deployment
+// Updated: Force Vercel rebuild with Railway backend URL
 const API_URL = 'https://web-intelligence-platform-production.up.railway.app/api/v1';
 axios.defaults.baseURL = API_URL;
 
