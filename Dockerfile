@@ -1,8 +1,8 @@
 # Use Python 3.11 slim image
 FROM python:3.11-slim
 
-# Set working directory
-WORKDIR /app
+# Set working directory to backend
+WORKDIR /app/backend
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -11,16 +11,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
-COPY backend/requirements-full.txt /app/backend/requirements-full.txt
+COPY backend/requirements-full.txt ./requirements-full.txt
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r backend/requirements-full.txt
+    pip install --no-cache-dir -r requirements-full.txt
 
-# Copy the rest of the application
-COPY backend /app/backend
-COPY railway.json /app/
-COPY Procfile /app/
+# Copy the backend application
+COPY backend/app ./app
+COPY backend/alembic.ini ./alembic.ini
+COPY backend/migrations ./migrations
 
 # Set Python path
 ENV PYTHONPATH=/app/backend:$PYTHONPATH
@@ -30,8 +30,8 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT:-8000}/health')" || exit 1
 
-# Start command (Railway will use Procfile, but this is fallback)
-CMD cd backend && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Start command
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
 
