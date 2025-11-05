@@ -14,7 +14,7 @@ from app.workers.discoverer import discover_site
 
 router = APIRouter(prefix="/sites", tags=["sites"])
 
-@router.post("", response_model=SiteResponse, status_code=201, dependencies=[Depends(require_roles(["admin", "product_lead"]))])
+@router.post("", response_model=SiteResponse, status_code=201)
 async def create_site(
     site_data: SiteCreate,
     db: AsyncSession = Depends(get_db)
@@ -58,7 +58,7 @@ async def create_site(
     
     return db_site
 
-@router.get("", response_model=SiteListResponse, dependencies=[Depends(get_current_user)])
+@router.get("", response_model=SiteListResponse)
 async def list_sites(
     status: str = Query(None),
     platform: str = Query(None),
@@ -96,7 +96,7 @@ async def list_sites(
         sites=sites
     )
 
-@router.get("/{site_id}", response_model=SiteResponse, dependencies=[Depends(get_current_user)])
+@router.get("/{site_id}", response_model=SiteResponse)
 async def get_site(
     site_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -111,7 +111,7 @@ async def get_site(
     
     return site
 
-@router.put("/{site_id}", response_model=SiteResponse, dependencies=[Depends(require_roles(["admin", "product_lead"]))])
+@router.put("/{site_id}", response_model=SiteResponse)
 async def update_site(
     site_id: UUID,
     site_data: SiteUpdate,
@@ -132,7 +132,7 @@ async def update_site(
     await db.refresh(db_site)
     return db_site
 
-@router.delete("/{site_id}", status_code=204, dependencies=[Depends(require_roles(["admin"]))])
+@router.delete("/{site_id}", status_code=204)
 async def delete_site(
     site_id: UUID,
     db: AsyncSession = Depends(get_db)

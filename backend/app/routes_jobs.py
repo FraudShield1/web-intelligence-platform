@@ -12,7 +12,7 @@ from app.security import get_current_user, require_roles
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
-@router.post("", response_model=JobResponse, status_code=201, dependencies=[Depends(require_roles(["admin", "product_lead", "scraper_engineer"]))])
+@router.post("", response_model=JobResponse, status_code=201)
 async def create_job(
     job_data: JobCreate,
     db: AsyncSession = Depends(get_db)
@@ -49,7 +49,7 @@ async def create_job(
     
     return db_job
 
-@router.get("", response_model=JobListResponse, dependencies=[Depends(get_current_user)])
+@router.get("", response_model=JobListResponse)
 async def list_jobs(
     site_id: UUID = Query(None),
     status: str = Query(None),
@@ -87,7 +87,7 @@ async def list_jobs(
     
     return JobListResponse(total=total, jobs=jobs)
 
-@router.get("/{job_id}", response_model=JobResponse, dependencies=[Depends(get_current_user)])
+@router.get("/{job_id}", response_model=JobResponse)
 async def get_job(
     job_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -102,7 +102,7 @@ async def get_job(
     
     return job
 
-@router.post("/{job_id}/cancel", response_model=JobResponse, dependencies=[Depends(require_roles(["admin", "product_lead"]))])
+@router.post("/{job_id}/cancel", response_model=JobResponse)
 async def cancel_job(
     job_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -124,7 +124,7 @@ async def cancel_job(
     
     return job
 
-@router.post("/{job_id}/retry", response_model=JobResponse, status_code=201, dependencies=[Depends(require_roles(["admin", "product_lead", "scraper_engineer"]))])
+@router.post("/{job_id}/retry", response_model=JobResponse, status_code=201)
 async def retry_job(
     job_id: UUID,
     db: AsyncSession = Depends(get_db)

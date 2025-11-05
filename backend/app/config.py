@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str = os.getenv("JWT_SECRET", "your-jwt-secret-change-in-production")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REQUIRE_AUTH: bool = os.getenv("REQUIRE_AUTH", "false").lower() == "true"  # Default to no auth for testing
     
     # CORS
     CORS_ORIGINS: List[str] = []

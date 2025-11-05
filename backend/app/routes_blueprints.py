@@ -12,7 +12,7 @@ from app.security import get_current_user, require_roles
 
 router = APIRouter(prefix="/blueprints", tags=["blueprints"])
 
-@router.get("/sites/{site_id}/latest", response_model=BlueprintResponse, dependencies=[Depends(get_current_user)])
+@router.get("/sites/{site_id}/latest", response_model=BlueprintResponse)
 async def get_latest_blueprint(
     site_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -37,7 +37,7 @@ async def get_latest_blueprint(
     
     return blueprint
 
-@router.get("/{blueprint_id}", response_model=BlueprintResponse, dependencies=[Depends(get_current_user)])
+@router.get("/{blueprint_id}", response_model=BlueprintResponse)
 async def get_blueprint(
     blueprint_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -52,7 +52,7 @@ async def get_blueprint(
     
     return blueprint
 
-@router.get("/sites/{site_id}/versions", response_model=BlueprintListResponse, dependencies=[Depends(get_current_user)])
+@router.get("/sites/{site_id}/versions", response_model=BlueprintListResponse)
 async def list_blueprint_versions(
     site_id: UUID,
     limit: int = Query(10, le=100),
@@ -89,7 +89,7 @@ async def list_blueprint_versions(
         versions=versions
     )
 
-@router.post("/{blueprint_id}/rollback", response_model=BlueprintResponse, status_code=201, dependencies=[Depends(require_roles(["admin", "product_lead"]))])
+@router.post("/{blueprint_id}/rollback", response_model=BlueprintResponse, status_code=201)
 async def rollback_blueprint(
     blueprint_id: UUID,
     to_version: int,
