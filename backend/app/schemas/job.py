@@ -25,15 +25,17 @@ class JobProgress(BaseModel):
 class JobResponse(BaseModel):
     """Job entity response"""
     job_id: UUID
-    site_id: UUID
+    site_id: Optional[UUID]
     job_type: str
     method: Optional[str]
     status: str
-    priority: int
-    attempt_count: int
+    progress: int
     created_at: datetime
+    updated_at: datetime
     started_at: Optional[datetime]
-    ended_at: Optional[datetime]
+    completed_at: Optional[datetime]
+    error_message: Optional[str]
+    result: Optional[dict]
 
     class Config:
         from_attributes = True
