@@ -25,13 +25,13 @@ This means the `DATABASE_URL` environment variable in Railway is pointing to the
 **Delete the old `DATABASE_URL` if it exists, and add this:**
 
 ```
-DATABASE_URL=postgresql+asyncpg://postgres:Xonique99@db.aeajgihhgplxcvcsiqeo.supabase.co:6543/postgres?sslmode=require
+DATABASE_URL=postgresql+asyncpg://postgres:Xonique99@db.aeajgihhgplxcvcsiqeo.supabase.co:5432/postgres?sslmode=require
 ```
 
 **Important Notes:**
-- Use port `6543` (Supabase connection pooler)
+- Use port `5432` (direct connection - more reliable from Railway)
 - Use `postgresql+asyncpg://` for async SQLAlchemy
-- Include `?sslmode=require` at the end
+- Include `?sslmode=require` at the end (our code handles SSL properly now)
 
 ### Step 3: Verify Other Environment Variables
 
