@@ -9,8 +9,13 @@ import Jobs from './pages/Jobs';
 import Analytics from './pages/Analytics';
 import './App.css';
 
-// Set default API base URL
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'https://web-intelligence-platform-production.up.railway.app/api/v1';
+// Set default API base URL - HARDCODED for Vercel deployment
+const API_URL = 'https://web-intelligence-platform-production.up.railway.app/api/v1';
+axios.defaults.baseURL = API_URL;
+
+// Debug: Log the API URL
+console.log('API Base URL:', axios.defaults.baseURL);
+console.log('Environment VITE_API_URL:', import.meta.env.VITE_API_URL);
 
 function App() {
   return (
