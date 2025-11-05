@@ -36,11 +36,17 @@ async def lifespan(app: FastAPI):
     """Lifespan context manager for startup/shutdown"""
     # Startup
     logger.info("Initializing application")
-    await rate_limiter.init()
+    try:
+        await rate_limiter.init()
+    except Exception as e:
+        logger.warning(f"Rate limiter init failed (OK for serverless): {e}")
     yield
     # Shutdown
     logger.info("Application shutdown")
-    await close_db()
+    try:
+        await close_db()
+    except Exception as e:
+        logger.warning(f"DB close failed (OK for serverless): {e}")
 
 # Conditionally hide docs in production
 _docs_url = "/docs" if (settings.DEBUG or settings.ENABLE_DOCS) else None
@@ -132,9 +138,5 @@ if __name__ == "__main__":
         reload=settings.RELOAD
     )
 
-# Vercel serverless handler
-try:
-    from mangum import Mangum
-    handler = Mangum(app)
-except ImportError:
-    pass
+# Vercel serverless - export app directly
+# Vercel's Python runtime will automatically detect and use the 'app' variable
