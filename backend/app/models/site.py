@@ -34,12 +34,11 @@ class Site(Base):
     last_discovered_at = Column(DateTime, nullable=True)
 
     # Blueprint Versioning
-    blueprint_version = Column(Integer, default=0)
+    blueprint_version = Column(Integer, default=1)
 
     # Metadata
     notes = Column(Text, nullable=True)
-    organization_id = Column(UUID(as_uuid=True), nullable=True)
-    created_by = Column(String(100), nullable=True)
+    created_by = Column(UUID(as_uuid=True), nullable=True)  # FK to users
 
     def __repr__(self):
         return f"<Site(site_id={self.site_id}, domain={self.domain}, status={self.status})>"
