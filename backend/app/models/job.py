@@ -17,35 +17,25 @@ class Job(Base):
     job_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True)
 
     # Foreign Keys
-    site_id = Column(UUID(as_uuid=True), ForeignKey("sites.site_id"), nullable=False, index=True)
+    site_id = Column(UUID(as_uuid=True), ForeignKey("sites.site_id", ondelete="CASCADE"), nullable=True, index=True)
 
     # Job Configuration
-    job_type = Column(String(50), nullable=False, index=True)  # fingerprint, discovery, extraction, blueprint_update
+    job_type = Column(String(100), nullable=False)  # fingerprint, discovery, extraction, blueprint_update
     method = Column(String(50), nullable=True)  # static, browser, api, auto
-    status = Column(String(50), default="queued", nullable=False, index=True)  # queued, running, success, failed, timeout, cancelled
+    status = Column(String(50), default="pending", nullable=False, index=True)  # pending, running, success, failed
 
-    # Priority & Retry
-    priority = Column(Integer, default=0, index=True)
-    attempt_count = Column(Integer, default=0)
-    max_retries = Column(Integer, default=3)
-
-    # Timing
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
-    started_at = Column(DateTime, nullable=True)
-    ended_at = Column(DateTime, nullable=True)
-    heartbeat_at = Column(DateTime, nullable=True)
-
-    # Execution
-    worker_id = Column(String(100), nullable=True, index=True)
-    duration_seconds = Column(Integer, nullable=True)
-
-    # Error Handling
-    error_code = Column(String(50), nullable=True)
-    error_message = Column(Text, nullable=True)
+    # Progress
+    progress = Column(Integer, default=0)
 
     # Data
-    payload = Column(JSON, nullable=True)  # Input parameters
     result = Column(JSON, nullable=True)  # Output results
+    error_message = Column(Text, nullable=True)
+
+    # Timing
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def __repr__(self):
         return f"<Job(job_id={self.job_id}, type={self.job_type}, status={self.status})>"
@@ -59,13 +49,9 @@ class Job(Base):
 
     @property
     def is_completed(self):
-        return self.status in ["success", "failed", "timeout", "cancelled"]
+        return self.status in ["success", "failed"]
 
     @property
     def is_failed(self):
         return self.status == "failed"
-
-    @property
-    def can_retry(self):
-        return self.attempt_count < self.max_retries
 
