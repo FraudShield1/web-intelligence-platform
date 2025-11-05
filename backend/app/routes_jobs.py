@@ -86,7 +86,7 @@ async def list_jobs(
     result = await db.execute(query)
     jobs = result.scalars().all()
     
-    return JobListResponse(total=total, jobs=jobs)
+    return JobListResponse(total=total, limit=limit, offset=offset, jobs=jobs)
 
 @router.get("/{job_id}", response_model=JobResponse)
 async def get_job(
