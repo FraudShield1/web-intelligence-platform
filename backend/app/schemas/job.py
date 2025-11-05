@@ -11,8 +11,7 @@ class JobCreate(BaseModel):
     site_id: UUID = Field(..., description="Site ID to process")
     job_type: str = Field(..., description="Job type: fingerprint, discovery, extraction")
     method: Optional[str] = Field(None, description="Method: static, browser, api, auto")
-    priority: Optional[int] = Field(0, description="Priority level")
-    parameters: Optional[dict] = Field(None, description="Job-specific parameters")
+    progress: Optional[int] = Field(0, description="Progress percentage")
 
 
 class JobProgress(BaseModel):
@@ -42,15 +41,8 @@ class JobResponse(BaseModel):
 
 
 class JobDetailResponse(JobResponse):
-    """Detailed job information"""
-    heartbeat_at: Optional[datetime]
-    worker_id: Optional[str]
-    duration_seconds: Optional[int]
-    error_code: Optional[str]
-    error_message: Optional[str]
-    payload: Optional[dict]
-    result: Optional[dict]
-    progress: Optional[JobProgress]
+    """Detailed job information - same as JobResponse for now"""
+    pass
 
 
 class JobListResponse(BaseModel):
