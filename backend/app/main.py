@@ -105,6 +105,30 @@ async def health():
         "service": "web-intelligence-platform"
     }
 
+# Debug endpoint to check database connection
+@app.get("/debug/db")
+async def debug_db():
+    """Debug database connection"""
+    try:
+        from app.database import get_db
+        async for db in get_db():
+            # Try a simple query
+            from sqlalchemy import text
+            result = await db.execute(text("SELECT 1"))
+            return {
+                "status": "success",
+                "message": "Database connection working",
+                "test_query": "SELECT 1",
+                "database_url_set": bool(settings.DATABASE_URL)
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "type": type(e).__name__,
+            "database_url_set": bool(settings.DATABASE_URL)
+        }
+
 # Prometheus metrics
 @app.get("/metrics")
 async def metrics():
