@@ -131,3 +131,10 @@ if __name__ == "__main__":
         port=settings.API_PORT,
         reload=settings.RELOAD
     )
+
+# Vercel serverless handler
+try:
+    from mangum import Mangum
+    handler = Mangum(app)
+except ImportError:
+    pass
