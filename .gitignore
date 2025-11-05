@@ -35,6 +35,11 @@ build/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
+
+# Vercel
+.vercel
 
 # Database
 *.db

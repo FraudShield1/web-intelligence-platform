@@ -31,6 +31,29 @@ This will:
 - **API Docs**: http://localhost:8000/docs
 - **RabbitMQ**: http://localhost:15672 (guest/guest)
 
+## Use Supabase locally (optional)
+
+You can use Supabase’s local Postgres instead of the Docker Postgres:
+
+```bash
+# 1) Start Supabase local (macOS + Docker required)
+bash scripts/supabase_local.sh
+
+# 2) Set DATABASE_URL for backend
+export DATABASE_URL=postgresql+asyncpg://postgres:postgres@127.0.0.1:54322/postgres
+
+# 3) Run database migrations
+(cd backend && DATABASE_URL=$DATABASE_URL bash scripts/db_migrate.sh)
+
+# 4) Run backend against Supabase Postgres
+(cd backend && DATABASE_URL=$DATABASE_URL uvicorn app.main:app --host 0.0.0.0 --port 8000)
+```
+
+Notes:
+- Supabase CLI will run Postgres on 127.0.0.1:54322 with user/password `postgres`.
+- Our app uses SQLAlchemy; no code changes required.
+- Keep Redis (docker-compose) running or point REDIS_URL to your Redis.
+
 ## Development Setup (Local)
 
 ### Backend
@@ -119,25 +142,14 @@ Queue (RabbitMQ)
 │   │   ├── routes_sites.py      # Sites endpoints
 │   │   ├── routes_jobs.py       # Jobs endpoints
 │   │   ├── routes_blueprints.py # Blueprints endpoints
-│   │   └── routes_analytics.py  # Analytics endpoints
+│   │   ├── routes_analytics.py  # Analytics endpoints
+│   │   └── routes_auth.py       # Auth endpoints (JWT)
 │   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── index.tsx
-│   │   ├── App.tsx
-│   │   ├── App.css
-│   │   ├── pages/
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── Sites.tsx
-│   │   │   ├── Jobs.tsx
-│   │   │   └── Analytics.tsx
-│   │   └── components/
-│   │       ├── Navbar.tsx
-│   │       └── Sidebar.tsx
-│   ├── package.json
-│   └── Dockerfile
+│   ├── alembic.ini
+│   ├── migrations/
+│   │   └── versions/0001_initial.py
+│   └── scripts/db_migrate.sh
+├── scripts/supabase_local.sh
 ├── docker-compose.yml
 ├── DATABASE.sql
 ├── docs/
@@ -178,7 +190,7 @@ Queue (RabbitMQ)
 
 ## Next Steps
 
-1. **Add Sites** - Click "Add Site" on Sites page
+1. **Add Sites** - Click "Sites" → "Add Site"
 2. **Create Jobs** - Jobs will appear as sites are processed
 3. **Monitor Progress** - Watch real-time updates on Jobs page
 4. **Review Results** - Check blueprints and analytics
@@ -190,7 +202,6 @@ Set environment variables in `.env`:
 ```
 DATABASE_URL=postgresql+asyncpg://wip:password@localhost:5432/web_intelligence
 REDIS_URL=redis://localhost:6379/0
-RABBITMQ_URL=amqp://guest:guest@localhost:5672/
 DEBUG=False
 ```
 
@@ -259,6 +270,7 @@ npm start
 - ✅ Frontend dashboard complete
 - ✅ Database schema ready
 - ✅ Docker setup ready
+- ✅ Supabase local supported
 - ⏳ LLM integration (ready to add)
 - ⏳ Workers (fingerprinter, browser, static)
 

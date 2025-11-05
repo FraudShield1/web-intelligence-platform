@@ -9,11 +9,17 @@ class Settings(BaseSettings):
     # App
     APP_NAME: str = "Web Intelligence Platform"
     DEBUG: bool = False
+    RELOAD: bool = False
+    ENABLE_DOCS: bool = False  # Disable Swagger in prod by default
+    
+    # Server
+    API_HOST: str = "0.0.0.0"
+    API_PORT: int = 8000
     
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://wip:password@localhost:5432/web_intelligence"
     
-    # Redis
+    # Redis (for caching/rate limiting)
     REDIS_URL: str = "redis://localhost:6379/0"
     
     # RabbitMQ
@@ -35,10 +41,14 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
     
-    # Server
-    API_HOST: str = "0.0.0.0"
-    API_PORT: int = 8000
-    RELOAD: bool = True
+    # Rate limiting
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_MAX_REQUESTS: int = 300
+    
+    # Metrics/Observability
+    PROMETHEUS_ENABLED: bool = True
+    LOG_LEVEL: str = "INFO"
     
     class Config:
         env_file = ".env"

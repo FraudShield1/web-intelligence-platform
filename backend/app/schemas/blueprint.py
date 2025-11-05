@@ -61,3 +61,10 @@ class BlueprintResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class BlueprintListResponse(BaseModel):
+    """List of blueprint versions"""
+    site_id: UUID
+    total_versions: int
+    versions: List[dict]
+

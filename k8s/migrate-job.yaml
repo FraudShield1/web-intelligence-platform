@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate
+  namespace: web-intelligence
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrate
+        image: web-intelligence:backend-latest
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: backend-config
+        - secretRef:
+            name: backend-secrets
+        command: ["python", "-m", "alembic", "upgrade", "head"]

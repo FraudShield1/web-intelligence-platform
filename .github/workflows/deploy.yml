@@ -1,0 +1,54 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image version/tag'
+        required: true
+        default: 'v1.0.0'
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ secrets.REGISTRY }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      KUBE_CONFIG_B64: ${{ secrets.KUBE_CONFIG_B64 }}
+      API_DOMAIN: ${{ secrets.API_DOMAIN }}
+      APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      NAMESPACE: web-intelligence
+      VERSION: ${{ github.event.inputs.version || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Login
+        if: env.REGISTRY != ''
+        run: |
+          echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY" -u "$REGISTRY_USERNAME" --password-stdin
+      - name: Install kubectl
+        run: |
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+          chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBE_CONFIG_B64" | base64 -d > ~/.kube/config
+      - name: Build & Deploy
+        run: |
+          chmod +x scripts/deploy_prod.sh scripts/create_secrets.sh
+          ./scripts/deploy_prod.sh
+        shell: bash
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          VERSION: ${{ env.VERSION }}
+          API_DOMAIN: ${{ env.API_DOMAIN }}
+          APP_DOMAIN: ${{ env.APP_DOMAIN }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
+          JWT_SECRET: ${{ env.JWT_SECRET }}
+          NAMESPACE: ${{ env.NAMESPACE }}

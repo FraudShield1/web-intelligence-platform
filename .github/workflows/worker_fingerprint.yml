@@ -1,0 +1,38 @@
+name: Fingerprint Worker
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Every 15 minutes
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  process_fingerprint_jobs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      
+      - name: Process queued fingerprint jobs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          UPSTASH_REDIS_URL: ${{ secrets.UPSTASH_REDIS_URL }}
+        run: |
+          cd backend
+          python -m app.workers.github_runner fingerprint --max-jobs=5
+
+      - name: Report status
+        if: always()
+        run: |
+          echo "✅ Fingerprint worker completed"
+          echo "Processed up to 5 jobs"
+

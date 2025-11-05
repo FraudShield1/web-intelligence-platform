@@ -1,8 +1,9 @@
 """Database connection and session management"""
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmanager
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import settings
-from app.models import Base
+
+Base = declarative_base()
 
 # Create async engine
 engine = create_async_engine(

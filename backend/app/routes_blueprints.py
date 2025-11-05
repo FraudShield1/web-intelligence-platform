@@ -8,10 +8,11 @@ import uuid as uuid_lib
 from app.database import get_db
 from app.models import Blueprint, Site
 from app.schemas import BlueprintResponse, BlueprintListResponse
+from app.security import get_current_user, require_roles
 
 router = APIRouter(prefix="/blueprints", tags=["blueprints"])
 
-@router.get("/sites/{site_id}/latest", response_model=BlueprintResponse)
+@router.get("/sites/{site_id}/latest", response_model=BlueprintResponse, dependencies=[Depends(get_current_user)])
 async def get_latest_blueprint(
     site_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -36,7 +37,7 @@ async def get_latest_blueprint(
     
     return blueprint
 
-@router.get("/{blueprint_id}", response_model=BlueprintResponse)
+@router.get("/{blueprint_id}", response_model=BlueprintResponse, dependencies=[Depends(get_current_user)])
 async def get_blueprint(
     blueprint_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -51,7 +52,7 @@ async def get_blueprint(
     
     return blueprint
 
-@router.get("/sites/{site_id}/versions", response_model=BlueprintListResponse)
+@router.get("/sites/{site_id}/versions", response_model=BlueprintListResponse, dependencies=[Depends(get_current_user)])
 async def list_blueprint_versions(
     site_id: UUID,
     limit: int = Query(10, le=100),
@@ -88,7 +89,7 @@ async def list_blueprint_versions(
         versions=versions
     )
 
-@router.post("/{blueprint_id}/rollback", response_model=BlueprintResponse, status_code=201)
+@router.post("/{blueprint_id}/rollback", response_model=BlueprintResponse, status_code=201, dependencies=[Depends(require_roles(["admin", "product_lead"]))])
 async def rollback_blueprint(
     blueprint_id: UUID,
     to_version: int,
@@ -133,13 +134,17 @@ async def rollback_blueprint(
     
     return new_blueprint
 
-@router.get("/{blueprint_id}/export")
+@router.get("/{blueprint_id}/export", dependencies=[Depends(get_current_user)])
 async def export_blueprint(
     blueprint_id: UUID,
     format: str = Query("json", regex="^(json|yaml)$"),
     db: AsyncSession = Depends(get_db)
 ):
-    """Export blueprint"""
+    """Export blueprint as JSON or YAML"""
+    from fastapi.responses import Response
+    import json
+    import yaml
+    
     stmt = select(Blueprint).where(Blueprint.blueprint_id == blueprint_id)
     result = await db.execute(stmt)
     blueprint = result.scalar_one_or_none()
@@ -152,16 +157,25 @@ async def export_blueprint(
         "site_id": str(blueprint.site_id),
         "version": blueprint.version,
         "confidence_score": blueprint.confidence_score,
-        "exported_at": blueprint.created_at.isoformat(),
-        "categories": blueprint.categories_data,
-        "endpoints": blueprint.endpoints_data,
-        "selectors": blueprint.selectors_data,
-        "render_hints": blueprint.render_hints_data
+        "exported_at": blueprint.created_at.isoformat() if blueprint.created_at else None,
+        "categories": blueprint.categories_data or {},
+        "endpoints": blueprint.endpoints_data or {},
+        "selectors": blueprint.selectors_data or {},
+        "render_hints": blueprint.render_hints_data or {}
     }
     
-    if format == "json":
-        return export_data
+    if format == "yaml":
+        yaml_content = yaml.dump(export_data, default_flow_style=False, allow_unicode=True)
+        return Response(
+            content=yaml_content,
+            media_type="application/x-yaml",
+            headers={"Content-Disposition": f"attachment; filename=blueprint_{blueprint_id}.yaml"}
+        )
     else:
-        # YAML format (return as dict, FastAPI will convert)
-        return export_data
+        json_content = json.dumps(export_data, indent=2)
+        return Response(
+            content=json_content,
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename=blueprint_{blueprint_id}.json"}
+        )
 
