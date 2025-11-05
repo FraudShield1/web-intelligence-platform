@@ -10,7 +10,7 @@ import Analytics from './pages/Analytics';
 import './App.css';
 
 // Set default API base URL
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'https://web-intelligence-platform-production.up.railway.app/api/v1';
 
 function App() {
   return (
