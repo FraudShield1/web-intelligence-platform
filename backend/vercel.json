@@ -2,22 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.py",
+      "src": "api/index.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "api/$1"
+      "src": "/(.*)",
+      "dest": "api/index.py"
     }
-  ],
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "UPSTASH_REDIS_REST_URL": "@redis_url",
-    "UPSTASH_REDIS_REST_TOKEN": "@redis_token",
-    "JWT_SECRET": "@jwt_secret",
-    "ANTHROPIC_API_KEY": "@anthropic_key"
-  }
+  ]
 }
 
