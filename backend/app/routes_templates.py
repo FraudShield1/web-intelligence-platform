@@ -6,7 +6,7 @@ from uuid import UUID
 from datetime import datetime
 
 from app.database import get_db
-from app.models import PlatformTemplate
+from app.models import PlatformTemplate  # Exported from app.models/__init__.py
 from app.schemas.template import TemplateCreate, TemplateUpdate, TemplateResponse, TemplateListResponse
 
 router = APIRouter(prefix="/templates", tags=["templates"])
