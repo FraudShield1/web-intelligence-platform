@@ -8,7 +8,16 @@ from collections import defaultdict, Counter
 
 import httpx
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright, Browser, Page
+
+# Lazy import Playwright to avoid startup failures
+try:
+    from playwright.async_api import async_playwright, Browser, Page
+    PLAYWRIGHT_AVAILABLE = True
+except ImportError:
+    async_playwright = None
+    Browser = None
+    Page = None
+    PLAYWRIGHT_AVAILABLE = False
 
 from app.services.compliance_checker import compliance_checker
 
@@ -18,11 +27,16 @@ class DiscoveryService:
     Feature G: Advanced Web Discovery
     Ethical, compliant, powerful site intelligence
     """
-    
+
     # Discovery limits (prevent infinite crawling)
     MAX_PAGES_PER_SITE = 50
     MAX_DEPTH = 3
     PAGE_TIMEOUT = 30000  # milliseconds
+
+    def __init__(self):
+        if not PLAYWRIGHT_AVAILABLE:
+            print("⚠️  WARNING: Playwright not available. Discovery features will not work.")
+            print("   To fix: Install playwright and run 'playwright install chromium'")
     
     def __init__(self):
         self.compliance = compliance_checker
