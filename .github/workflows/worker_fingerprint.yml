@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd backend
-          pip install -r requirements.txt
+          pip install sqlalchemy asyncpg pydantic pydantic-settings httpx
       
       - name: Process queued fingerprint jobs
         env:
