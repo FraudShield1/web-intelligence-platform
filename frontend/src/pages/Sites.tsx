@@ -52,6 +52,17 @@ const Sites = () => {
     }
   };
 
+  const discoverSite = async (siteId: string) => {
+    if (!window.confirm('Trigger Feature G discovery? This will analyze site structure, categories, products, and generate selectors.')) return;
+    try {
+      await axios.post(`/discovery/sites/${siteId}/discover`);
+      alert('✅ Discovery started! Check Jobs page or refresh in a few minutes.');
+      fetchSites();
+    } catch (err: any) {
+      alert('Failed: ' + (err.response?.data?.detail || err.message));
+    }
+  };
+
   return (
     <div className="page-body">
       <div className="page-header" style={{ background: 'transparent', border: 'none', paddingBottom: 0 }}>
@@ -158,7 +169,7 @@ const Sites = () => {
                     {new Date(site.created_at).toLocaleDateString()}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <button
                         className="button"
                         onClick={() => window.location.href = `/sites/${site.site_id}`}
@@ -166,6 +177,21 @@ const Sites = () => {
                       >
                         View Details
                       </button>
+                      {site.status === 'fingerprinted' && (
+                        <button
+                          className="button"
+                          onClick={() => discoverSite(site.site_id)}
+                          style={{ 
+                            fontSize: '0.75rem', 
+                            padding: '0.25rem 0.5rem',
+                            backgroundColor: '#10b981',
+                            borderColor: '#10b981'
+                          }}
+                          title="Run Feature G discovery: find categories, products, and selectors"
+                        >
+                          🔍 Discover
+                        </button>
+                      )}
                       <button
                         className="button button-danger"
                         onClick={() => deleteSite(site.site_id)}

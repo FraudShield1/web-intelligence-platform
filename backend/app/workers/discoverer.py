@@ -1,8 +1,7 @@
-"""Discoverer worker - finds categories and product structures using LLM"""
+"""Discoverer worker - Feature G: Advanced site discovery with compliance"""
 import asyncio
 from uuid import UUID, uuid4
 from datetime import datetime
-import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -10,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from app.celery_app import celery_app
 from app.config import settings
 from app.models import Site, Job, Blueprint
-from app.services.llm_service import llm_service
+from app.services.discovery_service import discovery_service
 
 
 async def _discover_site_async(site_id: str, job_id: str):
@@ -41,19 +40,19 @@ async def _discover_site_async(site_id: str, job_id: str):
         await db.commit()
         
         try:
-            # Fetch site HTML
+            # Run Feature G discovery (all 6 phases with compliance)
             url = f"https://{site.domain}"
-            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-                response = await client.get(url, headers={"User-Agent": "Mozilla/5.0"})
-                html = response.text
+            print(f"🚀 Starting Feature G discovery for {url}")
             
-            # Analyze with LLM
-            analysis = await llm_service.analyze_site_structure(html, url)
+            discovery_result = await discovery_service.discover_site(url)
             
-            if not analysis.get("success"):
-                raise Exception(analysis.get("error", "LLM analysis failed"))
+            if not discovery_result.get("success"):
+                error_msg = discovery_result.get("error", "Discovery failed")
+                raise Exception(f"Discovery failed: {error_msg}")
             
-            # Get or create blueprint
+            print(f"✅ Discovery complete! Confidence: {discovery_result['confidence_score']}")
+            
+            # Get existing blueprints to determine next version
             blueprint_stmt = select(Blueprint).where(
                 Blueprint.site_id == UUID(site_id)
             ).order_by(Blueprint.version.desc()).limit(1)
@@ -62,39 +61,55 @@ async def _discover_site_async(site_id: str, job_id: str):
             
             version = (existing_blueprint.version + 1) if existing_blueprint else 1
             
-            # Create new blueprint
+            # Create blueprint from discovery results
             blueprint = Blueprint(
                 blueprint_id=uuid4(),
                 site_id=UUID(site_id),
                 version=version,
-                confidence_score=0.8,  # Base confidence from discovery
-                categories_data={"discovered": True, "analysis": analysis},
-                endpoints_data={},
-                render_hints_data={"requires_js": site.fingerprint_data.get("requires_js", False)},
-                selectors_data={},
-                created_by="system",
-                notes=f"Discovered via LLM analysis (job {job_id})"
+                confidence_score=discovery_result["confidence_score"],
+                # Store categories data
+                categories_data=discovery_result["categories"].get("categories", {}),
+                # Store endpoints data
+                endpoints_data=discovery_result["endpoints"].get("endpoints", []),
+                # Store render hints
+                render_hints_data=discovery_result.get("render_hints", {}),
+                # Store selectors data
+                selectors_data=discovery_result["selectors"].get("selectors", {}),
+                created_by="system_featureG",
+                notes=f"Feature G discovery (job {job_id}). Found {discovery_result['categories'].get('total_categories', 0)} categories, {discovery_result['products'].get('total_products_found', 0)} products, {len(discovery_result['selectors'].get('selectors', {}))} selectors."
             )
             
             db.add(blueprint)
             
-            # Update site
+            # Update site with discovery status
             site.status = "discovered"
             site.blueprint_version = version
             site.last_discovered_at = datetime.utcnow()
             
-            # Update job
+            # Update job with complete results
             job.status = "success"
             job.completed_at = datetime.utcnow()
-            job.result = {"blueprint_id": str(blueprint.blueprint_id), "version": version}
+            job.result = {
+                "blueprint_id": str(blueprint.blueprint_id),
+                "version": version,
+                "confidence_score": discovery_result["confidence_score"],
+                "categories_found": discovery_result["categories"].get("total_categories", 0),
+                "products_found": discovery_result["products"].get("total_products_found", 0),
+                "selectors_found": len(discovery_result["selectors"].get("selectors", {})),
+                "endpoints_found": discovery_result["endpoints"].get("total_endpoints", 0),
+                "duration_seconds": discovery_result.get("duration_seconds", 0)
+            }
             
             await db.commit()
+            
+            print(f"💾 Blueprint v{version} saved successfully!")
             
             return {
                 "success": True,
                 "site_id": site_id,
                 "blueprint_id": str(blueprint.blueprint_id),
-                "version": version
+                "version": version,
+                "discovery_summary": job.result
             }
             
         except Exception as e:

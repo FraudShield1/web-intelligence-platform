@@ -43,7 +43,9 @@ async def process_queued_jobs(job_type: str, max_jobs: int = 5):
                         str(job.site_id),
                         str(job.job_id)
                     )
-                elif job_type == "discovery":
+                elif job_type == "discover":
+                    # Feature G discovery
+                    from app.workers.discoverer import _discover_site_async
                     result = await _discover_site_async(
                         str(job.site_id),
                         str(job.job_id)
