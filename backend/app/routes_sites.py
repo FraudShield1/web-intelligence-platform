@@ -11,7 +11,14 @@ from app.schemas import SiteCreate, SiteUpdate, SiteResponse, SiteDetailResponse
 # Temporarily disabled for easier testing
 # from app.security import get_current_user, require_roles
 from app.workers.fingerprinter import fingerprint_site
-from app.workers.discoverer import discover_site
+# Lazy import to avoid startup failures
+try:
+    from app.workers.discoverer import discover_site
+    DISCOVERER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Discovery worker not available: {e}")
+    discover_site = None
+    DISCOVERER_AVAILABLE = False
 
 router = APIRouter(prefix="/sites", tags=["sites"])
 
