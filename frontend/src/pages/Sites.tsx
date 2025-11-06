@@ -158,13 +158,22 @@ const Sites = () => {
                     {new Date(site.created_at).toLocaleDateString()}
                   </td>
                   <td>
-                    <button
-                      className="button button-danger"
-                      onClick={() => deleteSite(site.site_id)}
-                      style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
-                    >
-                      Delete
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        className="button"
+                        onClick={() => window.location.href = `/sites/${site.site_id}`}
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                      >
+                        View Details
+                      </button>
+                      <button
+                        className="button button-danger"
+                        onClick={() => deleteSite(site.site_id)}
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

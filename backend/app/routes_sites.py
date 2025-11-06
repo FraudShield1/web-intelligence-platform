@@ -7,7 +7,7 @@ import uuid as uuid_lib
 
 from app.database import get_db
 from app.models import Site, Job
-from app.schemas import SiteCreate, SiteUpdate, SiteResponse, SiteListResponse
+from app.schemas import SiteCreate, SiteUpdate, SiteResponse, SiteDetailResponse, SiteListResponse
 # Temporarily disabled for easier testing
 # from app.security import get_current_user, require_roles
 from app.workers.fingerprinter import fingerprint_site
@@ -97,12 +97,12 @@ async def list_sites(
         sites=sites
     )
 
-@router.get("/{site_id}", response_model=SiteResponse)
+@router.get("/{site_id}", response_model=SiteDetailResponse)
 async def get_site(
     site_id: UUID,
     db: AsyncSession = Depends(get_db)
 ):
-    """Get site details"""
+    """Get site details with fingerprint data"""
     stmt = select(Site).where(Site.site_id == site_id)
     result = await db.execute(stmt)
     site = result.scalar_one_or_none()

@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Sites from './pages/Sites';
+import SiteDetails from './pages/SiteDetails';
 import Jobs from './pages/Jobs';
 import Analytics from './pages/Analytics';
 import './App.css';
@@ -30,6 +31,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/sites" element={<Sites />} />
+              <Route path="/sites/:siteId" element={<SiteDetails />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="*" element={<Navigate to="/" />} />
