@@ -89,10 +89,6 @@ async def _generate_selectors_async(blueprint_id: str, job_id: str, fields: list
                 "fields": selectors_created
             }
             
-            if job.started_at:
-                duration = (job.ended_at - job.started_at).total_seconds()
-                job.duration_seconds = int(duration)
-            
             await db.commit()
             
             return {

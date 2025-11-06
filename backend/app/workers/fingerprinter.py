@@ -53,12 +53,8 @@ async def _fingerprint_site_async(site_id: str, job_id: str):
             
             # Update job
             job.status = "success"
-            job.ended_at = datetime.utcnow()
+            job.completed_at = datetime.utcnow()
             job.result = fingerprint
-            
-            if job.started_at:
-                duration = (job.ended_at - job.started_at).total_seconds()
-                job.duration_seconds = int(duration)
             
             await db.commit()
             
