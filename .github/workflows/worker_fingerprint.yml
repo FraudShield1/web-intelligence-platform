@@ -20,7 +20,8 @@ jobs:
       - name: Install dependencies
         run: |
           cd backend
-          pip install sqlalchemy asyncpg pydantic pydantic-settings httpx
+          pip install sqlalchemy asyncpg pydantic pydantic-settings httpx celery redis beautifulsoup4 lxml playwright
+          playwright install chromium
       
       - name: Process queued fingerprint jobs
         env:
