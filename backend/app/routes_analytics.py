@@ -49,10 +49,16 @@ async def get_dashboard_metrics(
     total_jobs = len(jobs)
     success_rate = successful_jobs / total_jobs if total_jobs > 0 else 0
     
+    # Calculate average duration safely
     avg_duration = 0
     if successful_jobs > 0:
-        total_duration = sum(j.duration_seconds or 0 for j in jobs if j.status == "success")
-        avg_duration = total_duration / successful_jobs
+        durations = []
+        for j in jobs:
+            if j.status == "success" and j.started_at and j.completed_at:
+                duration = (j.completed_at - j.started_at).total_seconds()
+                durations.append(duration)
+        if durations:
+            avg_duration = sum(durations) / len(durations)
     
     # Get platform distribution
     platform_dist = {}
@@ -123,10 +129,16 @@ async def get_site_metrics(
     successful = len([j for j in jobs if j.status == "success"])
     total = len(jobs)
     
+    # Calculate average time safely
     avg_time = 0
     if successful > 0:
-        total_time = sum(j.duration_seconds or 0 for j in jobs if j.status == "success")
-        avg_time = total_time / successful
+        durations = []
+        for j in jobs:
+            if j.status == "success" and j.started_at and j.completed_at:
+                duration = (j.completed_at - j.started_at).total_seconds()
+                durations.append(duration)
+        if durations:
+            avg_time = sum(durations) / len(durations)
     
     return SiteMetricsResponse(
         site_id=site_id,
@@ -176,10 +188,16 @@ async def get_method_performance(
         successful = len([j for j in jobs if j.status == "success"])
         total = len(jobs)
         
+        # Calculate average time safely
         avg_time = 0
         if successful > 0:
-            total_time = sum(j.duration_seconds or 0 for j in jobs if j.status == "success")
-            avg_time = total_time / successful
+            durations = []
+            for j in jobs:
+                if j.status == "success" and j.started_at and j.completed_at:
+                    duration = (j.completed_at - j.started_at).total_seconds()
+                    durations.append(duration)
+            if durations:
+                avg_time = sum(durations) / len(durations)
         
         performance.append({
             "method": method,
