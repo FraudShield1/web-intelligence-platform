@@ -22,6 +22,15 @@ class Settings(BaseSettings):
         "DATABASE_URL",
         "postgresql+asyncpg://wip:password@localhost:5432/web_intelligence"
     )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Ensure DATABASE_URL uses asyncpg driver
+        if self.DATABASE_URL and self.DATABASE_URL.startswith("postgresql://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif self.DATABASE_URL and not "+" in self.DATABASE_URL:
+            # If no driver specified, assume asyncpg
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgresql:", "postgresql+asyncpg:", 1)
     
     # Redis (for caching/rate limiting/Celery)
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
