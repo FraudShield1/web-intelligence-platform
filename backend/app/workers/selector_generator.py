@@ -124,5 +124,5 @@ def generate_selectors(self, blueprint_id: str, job_id: str, fields: list = None
         result = asyncio.run(_generate_selectors_async(blueprint_id, job_id, fields))
         return result
     except Exception as e:
-        return {"success": False", "error": str(e)}
+        return {"success": False, "error": str(e)}
 
