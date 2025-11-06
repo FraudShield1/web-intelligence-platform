@@ -60,41 +60,18 @@ async def get_dashboard_metrics(
         if durations:
             avg_duration = sum(durations) / len(durations)
     
-    # Get platform distribution
-    platform_dist = {}
-    for site in all_sites:
-        platform = site.platform or "unknown"
-        platform_dist[platform] = platform_dist.get(platform, 0) + 1
+    # Count active jobs (running status)
+    active_jobs = len([j for j in jobs if j.status in ["running", "queued"]])
+    
+    # Count total blueprints (sites with blueprints)
+    total_blueprints = len([s for s in all_sites if s.blueprint_version and s.blueprint_version > 0])
     
     return DashboardMetricsResponse(
         total_sites=total_sites,
-        sites_new=new_sites,
-        sites_ready=ready_sites,
-        sites_in_review=review_sites,
-        sites_failed=failed_sites,
-        discovery_metrics={
-            "total_discoveries": total_jobs,
-            "successful_discoveries": successful_jobs,
-            "success_rate": round(success_rate, 2),
-            "avg_discovery_time_seconds": round(avg_duration, 1)
-        },
-        site_distribution={
-            "by_platform": platform_dist,
-            "by_status": {
-                "pending": len([s for s in all_sites if s.status == "pending"]),
-                "ready": ready_sites,
-                "review": review_sites,
-                "failed": failed_sites
-            }
-        },
-        quality_metrics={
-            "avg_blueprint_confidence": 0.88,
-            "selector_failure_rate": 0.12,
-            "categories_average": 48,
-            "endpoints_average": 6.2
-        },
-        trends=[],
-        alerts=[]
+        active_jobs=active_jobs,
+        total_blueprints=total_blueprints,
+        avg_discovery_time=avg_duration if avg_duration > 0 else None,
+        success_rate=success_rate if total_jobs > 0 else None
     )
 
 @router.get("/sites/{site_id}/metrics", response_model=SiteMetricsResponse)
@@ -140,31 +117,21 @@ async def get_site_metrics(
         if durations:
             avg_time = sum(durations) / len(durations)
     
+    failed = len([j for j in jobs if j.status == "failed"])
+    
     return SiteMetricsResponse(
         site_id=site_id,
         domain=site.domain,
-        summary={
-            "discovery_count": total,
-            "last_discovery": site.last_discovered_at.isoformat() if site.last_discovered_at else None,
-            "avg_discovery_time_seconds": round(avg_time, 1),
-            "success_rate": round(successful / total if total > 0 else 0, 2)
-        },
-        timeline=[
-            {
-                "date": m.date.isoformat(),
-                "discovery_time": m.discovery_time_seconds,
-                "categories_found": m.num_categories_found,
-                "endpoints_found": m.num_endpoints_found
-            }
-            for m in metrics
-        ],
-        trend_analysis={
-            "discovery_time_trend": "improving",
-            "efficiency_score": 0.87
-        }
+        total_jobs=total,
+        successful_jobs=successful,
+        failed_jobs=failed,
+        avg_discovery_time=avg_time if avg_time > 0 else None,
+        total_categories=None,  # Could calculate from metrics if needed
+        total_endpoints=None,   # Could calculate from metrics if needed
+        last_run=site.last_discovered_at.isoformat() if site.last_discovered_at else None
     )
 
-@router.get("/methods/performance", response_model=MethodPerformanceResponse)
+@router.get("/methods/performance")
 async def get_method_performance(
     db: AsyncSession = Depends(get_db)
 ):
@@ -174,46 +141,39 @@ async def get_method_performance(
     result = await db.execute(jobs_stmt)
     all_jobs = result.scalars().all()
     
-    # Group by method
-    methods = {}
-    for job in all_jobs:
-        method = job.method or "unknown"
-        if method not in methods:
-            methods[method] = []
-        methods[method].append(job)
+    if not all_jobs:
+        # Return empty result if no jobs
+        return {
+            "method": "none",
+            "total_runs": 0,
+            "success_rate": 0.0,
+            "avg_discovery_time": 0.0,
+            "avg_categories_found": 0.0,
+            "avg_cost_usd": 0.0
+        }
     
-    # Calculate stats
-    performance = []
-    for method, jobs in methods.items():
-        successful = len([j for j in jobs if j.status == "success"])
-        total = len(jobs)
-        
-        # Calculate average time safely
-        avg_time = 0
-        if successful > 0:
-            durations = []
-            for j in jobs:
-                if j.status == "success" and j.started_at and j.completed_at:
-                    duration = (j.completed_at - j.started_at).total_seconds()
-                    durations.append(duration)
-            if durations:
-                avg_time = sum(durations) / len(durations)
-        
-        performance.append({
-            "method": method,
-            "total_jobs": total,
-            "success_count": successful,
-            "success_rate": round(successful / total if total > 0 else 0, 3),
-            "avg_time_seconds": round(avg_time, 1),
-            "avg_cost_usd": 0.25  # Placeholder
-        })
+    # Use the first method found, or aggregate all methods
+    # For now, let's aggregate all methods together
+    successful = len([j for j in all_jobs if j.status == "success"])
+    total = len(all_jobs)
+    
+    # Calculate average time safely
+    avg_time = 0.0
+    if successful > 0:
+        durations = []
+        for j in all_jobs:
+            if j.status == "success" and j.started_at and j.completed_at:
+                duration = (j.completed_at - j.started_at).total_seconds()
+                durations.append(duration)
+        if durations:
+            avg_time = sum(durations) / len(durations)
     
     return MethodPerformanceResponse(
-        method_performance=performance,
-        by_platform={},
-        recommendations=[
-            "Use static method for faster discovery when possible",
-            "Browser method provides better accuracy for JS-heavy sites"
-        ]
+        method="all",
+        total_runs=total,
+        success_rate=round(successful / total if total > 0 else 0, 3),
+        avg_discovery_time=round(avg_time, 1),
+        avg_categories_found=0.0,  # Placeholder
+        avg_cost_usd=0.25  # Placeholder
     )
 
