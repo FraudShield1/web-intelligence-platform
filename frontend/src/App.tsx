@@ -11,7 +11,7 @@ import Analytics from './pages/Analytics';
 import './App.css';
 
 // Set default API base URL - HARDCODED for Vercel deployment
-// FORCED REBUILD v2 - Railway backend URL
+// FORCED REBUILD v3 - Railway backend URL + SiteDetails page
 const API_URL = 'https://web-intelligence-platform-production.up.railway.app/api/v1';
 axios.defaults.baseURL = API_URL;
 
@@ -19,6 +19,7 @@ axios.defaults.baseURL = API_URL;
 console.log('🚀 API Base URL:', axios.defaults.baseURL);
 console.log('🔧 Environment VITE_API_URL:', import.meta.env.VITE_API_URL);
 console.log('✅ Build timestamp:', new Date().toISOString());
+console.log('📄 SiteDetails page enabled!');
 
 function App() {
   return (
