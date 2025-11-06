@@ -4,6 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from datetime import datetime
+from typing import Optional
 
 from app.database import get_db
 from app.models import PlatformTemplate  # Exported from app.models/__init__.py
