@@ -8,14 +8,70 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import init_db, close_db
-from app.routes_sites import router as sites_router
-from app.routes_jobs import router as jobs_router
-from app.routes_blueprints import router as blueprints_router
-from app.routes_analytics import router as analytics_router
-from app.routes_auth import router as auth_router
-from app.routes_public import router as public_router
-from app.routes_discovery import router as discovery_router
-from app.routes_templates import router as templates_router
+# Lazy import all routers to avoid startup failures
+try:
+    from app.routes_sites import router as sites_router
+    SITES_ROUTER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Sites router not available: {e}")
+    sites_router = None
+    SITES_ROUTER_AVAILABLE = False
+
+try:
+    from app.routes_jobs import router as jobs_router
+    JOBS_ROUTER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Jobs router not available: {e}")
+    jobs_router = None
+    JOBS_ROUTER_AVAILABLE = False
+
+try:
+    from app.routes_blueprints import router as blueprints_router
+    BLUEPRINTS_ROUTER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Blueprints router not available: {e}")
+    blueprints_router = None
+    BLUEPRINTS_ROUTER_AVAILABLE = False
+
+try:
+    from app.routes_analytics import router as analytics_router
+    ANALYTICS_ROUTER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Analytics router not available: {e}")
+    analytics_router = None
+    ANALYTICS_ROUTER_AVAILABLE = False
+
+try:
+    from app.routes_auth import router as auth_router
+    AUTH_ROUTER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Auth router not available: {e}")
+    auth_router = None
+    AUTH_ROUTER_AVAILABLE = False
+
+try:
+    from app.routes_public import router as public_router
+    PUBLIC_ROUTER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Public router not available: {e}")
+    public_router = None
+    PUBLIC_ROUTER_AVAILABLE = False
+
+try:
+    from app.routes_discovery import router as discovery_router
+    DISCOVERY_ROUTER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Discovery router not available: {e}")
+    discovery_router = None
+    DISCOVERY_ROUTER_AVAILABLE = False
+
+try:
+    from app.routes_templates import router as templates_router
+    TEMPLATES_ROUTER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Templates router not available: {e}")
+    templates_router = None
+    TEMPLATES_ROUTER_AVAILABLE = False
 from app.middleware_rate_limit import RateLimiter
 
 # Prometheus
