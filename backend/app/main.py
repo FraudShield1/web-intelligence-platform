@@ -157,11 +157,31 @@ async def add_request_id_and_metrics(request: Request, call_next):
 @app.get("/health")
 async def health():
     """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "version": "1.0.0",
-        "service": "web-intelligence-platform"
-    }
+    try:
+        # Test database connection
+        async with get_db() as db:
+            result = await db.execute("SELECT 1 as test")
+            row = result.fetchone()
+            db_status = "connected" if row else "error"
+
+        return {
+            "status": "ok",
+            "timestamp": datetime.utcnow().isoformat(),
+            "database": db_status,
+            "version": "1.0.0"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "timestamp": datetime.utcnow().isoformat(),
+            "database": f"error: {str(e)}",
+            "version": "1.0.0"
+        }
+
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {"message": "Web Intelligence Platform API", "version": "1.0.0", "status": "running"}
 
 # Debug endpoint to check database connection
 @app.get("/debug/db")
