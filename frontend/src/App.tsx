@@ -8,6 +8,7 @@ import Sites from './pages/Sites';
 import SiteDetails from './pages/SiteDetails';
 import Jobs from './pages/Jobs';
 import Analytics from './pages/Analytics';
+import Templates from './pages/Templates';
 import './App.css';
 
 // Set default API base URL - HARDCODED for Vercel deployment
@@ -35,6 +36,7 @@ function App() {
               <Route path="/sites/:siteId" element={<SiteDetails />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/analytics" element={<Analytics />} />
+              <Route path="/templates" element={<Templates />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>

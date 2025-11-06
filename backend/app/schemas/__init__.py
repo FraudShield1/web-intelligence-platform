@@ -10,6 +10,7 @@ from app.schemas.analytics import (
     SiteMetricsResponse,
     MethodPerformanceResponse
 )
+from app.schemas.template import TemplateCreate, TemplateUpdate, TemplateResponse, TemplateListResponse
 
 __all__ = [
     "SiteCreate", "SiteUpdate", "SiteResponse", "SiteDetailResponse", "SiteListResponse",
@@ -19,6 +20,7 @@ __all__ = [
     "AnalyticsMetricResponse",
     "DashboardMetricsResponse",
     "SiteMetricsResponse",
-    "MethodPerformanceResponse"
+    "MethodPerformanceResponse",
+    "TemplateCreate", "TemplateUpdate", "TemplateResponse", "TemplateListResponse"
 ]
 

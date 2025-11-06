@@ -15,6 +15,7 @@ from app.routes_analytics import router as analytics_router
 from app.routes_auth import router as auth_router
 from app.routes_public import router as public_router
 from app.routes_discovery import router as discovery_router
+from app.routes_templates import router as templates_router
 from app.middleware_rate_limit import RateLimiter
 
 # Prometheus
@@ -155,6 +156,7 @@ app.include_router(jobs_router, prefix="/api/v1")
 app.include_router(blueprints_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(discovery_router, prefix="/api/v1")  # Feature G discovery endpoints
+app.include_router(templates_router, prefix="/api/v1")  # Feature F: Template library
 app.include_router(public_router, prefix="/api/v1")  # Public endpoints - no auth required
 
 if __name__ == "__main__":

@@ -41,6 +41,14 @@ const Sidebar = () => {
             📈 Analytics
           </Link>
         </li>
+        <li className="sidebar-item">
+          <Link 
+            to="/templates" 
+            className={`sidebar-link ${isActive('/templates') ? 'active' : ''}`}
+          >
+            📋 Templates
+          </Link>
+        </li>
       </ul>
     </div>
   );

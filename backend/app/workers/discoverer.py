@@ -10,6 +10,7 @@ from app.celery_app import celery_app
 from app.config import settings
 from app.models import Site, Job, Blueprint
 from app.services.discovery_service import discovery_service
+from app.services.template_matcher import template_matcher
 
 
 async def _discover_site_async(site_id: str, job_id: str):
@@ -51,6 +52,28 @@ async def _discover_site_async(site_id: str, job_id: str):
                 raise Exception(f"Discovery failed: {error_msg}")
             
             print(f"✅ Discovery complete! Confidence: {discovery_result['confidence_score']}")
+            
+            # Try to find and apply platform template (Feature F)
+            template = None
+            if site.platform:
+                print(f"🔍 Looking for template for platform: {site.platform}")
+                template = await template_matcher.find_template(
+                    platform_name=site.platform,
+                    fingerprint_data=site.fingerprint_data,
+                    variant=None,  # Could extract from fingerprint_data if needed
+                    db=db
+                )
+                
+                if template:
+                    print(f"✅ Found template: {template.platform_name} (confidence: {template.confidence})")
+                    # Merge template data with discovery results
+                    discovery_result = template_matcher.apply_template_to_blueprint(
+                        template,
+                        discovery_result
+                    )
+                    print("✅ Template applied to blueprint")
+                else:
+                    print("ℹ️ No template found, using discovery data only")
             
             # Get existing blueprints to determine next version
             blueprint_stmt = select(Blueprint).where(
